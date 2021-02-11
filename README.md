@@ -17,6 +17,6 @@ Outputs results on the test set
 Exports the final model as a pickle file
 
 3. Flask Web App
-Shows data visualizations using Plotly in the web app.
+shows data visualizations using Plotly in the web app.
 
 
