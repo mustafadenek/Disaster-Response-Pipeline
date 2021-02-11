@@ -1,7 +1,7 @@
 # Disaster-Response-Pipeline
 
 
-# Project Files
+### Project Files
 1. process_data.py
 Loads the messages and categories datasets
 Merges the two datasets
