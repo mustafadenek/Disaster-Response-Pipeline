@@ -21,16 +21,20 @@ import pickle
 
 def load_data(database_filepath):
     '''
-    INPUT 
-        database_filepath - Filepath used for importing the database     
-    OUTPUT
-        Returns the following variables:
-        X - Returns the input features.  Specifically, this is returning the messages column from the dataset
-        Y - Returns the categories of the dataset.  This will be used for classification based off of the input X
-        y.keys - Just returning the columns of the Y columns
+    INPUT: 
+        database_filepath - Filepath that will the file is saved.  
+    OUTPUT:        
+        X - Features which will be used in ML algorithm.
+        Y - Outputs which will be our target value in ML algorithm
+        y.keys - columns of Y
     '''
-    engine = create_engine('sqlite:///data/DisasterResponse.db')
+    #create connection to database
+    engine = create_engine('sqlite:///data/DisasterResponse.db')       
+    
+    #read from SQL table
     df =  pd.read_sql_table('DisasterResponse', engine)
+    
+    #set X and y
     X = df.message.values
     y = df.iloc[:,5:]
     return X, y, y.keys()
@@ -40,36 +44,37 @@ def tokenize(text):
     INPUT 
         text: Text to be processed   
     OUTPUT
-        Returns a processed text variable that was tokenized, lower cased, stripped, and lemmatized
+        Returns tokenized, lemmatized, lowered and stripped data
     '''
+    #tokenize, lemmatize and strip the data
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
+    clean_tokens = [lemmatizer.lemmatize(tok).lower().strip() for tok in tokens]
+  
     return clean_tokens
 
 def build_model(X_train,y_train):
     '''
     INPUT 
-        X_Train: Training features for use by GridSearchCV
-        y_train: Training labels for use by GridSearchCV
+        X_Train: Training features for use in GridSearchCV
+        y_train: Training labels for use in GridSearchCV
     OUTPUT
         Returns a pipeline model that has gone through tokenization, count vectorization, 
         TFIDTransofmration and created into a ML model
     '''
+    #create pipeline
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
         ('clf', MultiOutputClassifier(RandomForestClassifier()))
     ])
-    
+    #set parameter
     parameters = {  
-        'clf__estimator__min_samples_split': [2, 4],
+        'clf__estimator__min_samples_split': [2, 4],        
+        'tfidf_vect__max_df': (0.75, 1.0),
 
     }
+    #create GridSearchCV and fit it
     cv = GridSearchCV(estimator=pipeline, param_grid=parameters)
     cv.fit(X_train,y_train)
     return cv
@@ -78,11 +83,11 @@ def evaluate_model(pipeline, X_test, Y_test, category_names):
     '''
     INPUT 
         pipeline: The model that is to be evaluated
-        X_test: Input features, testing set
-        y_test: Label features, testing set
+        X_test: Input features, test set
+        y_test: Label features, test set
         category_names: List of the categories 
     OUTPUT
-        This method does nto specifically return any data to its calling method.
+        This method does not specifically return any data to its calling method.
         However, it prints out the precision, recall and f1-score
     '''
     # predict on test data
@@ -96,8 +101,8 @@ def save_model(model, model_filepath):
         model: The model to be saved
         model_filepath: Filepath for where the model is to be saved
     OUTPUT
-        While there is no specific item that is returned to its calling method, this method will save the model as a pickle file.
-    '''    
+        does not return anythin however, it saves the model as a pickle file.
+    '''
     temp_pickle = open(model_filepath, 'wb')
     pickle.dump(model, temp_pickle)
     temp_pickle.close()
@@ -116,14 +121,8 @@ def main():
         model.fit(X_train, Y_train)
         
         print('Evaluating model...')
-        evaluate_model(model, X_test, Y_test, category_names)
-        
-        
-        ###WILL NEED TO CXLEAN THIS UP
-        print('TYPE OF MODEL')
-        print(type(model))
-        
-        
+        evaluate_model(model, X_test, Y_test, category_names)       
+                    
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
         save_model(model, model_filepath)
 
