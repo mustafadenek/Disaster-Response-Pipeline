@@ -7,15 +7,16 @@ from sqlalchemy import create_engine
 def load_data(messages_filepath, categories_filepath):
     '''
     INPUT 
-        database_filepath - Filepath used for importing the database     
-    OUTPUT
-        Returns the following variables:
-        X - Returns the input features.  Specifically, this is returning the messages column from the dataset
-        Y - Returns the categories of the dataset.  This will be used for classification based off of the input X
+        database_filepath - Filepath used to importing the database     
+    OUTPUT     
+        X - Features. This is returning the messages column from the dataset
+        Y - Categories of the dataset.  This will be used for classification based of the input X
         y.keys - Just returning the columns of the Y columns
     '''
+    #read the csv file from filepath and set categories
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
+    #merge messages and categories dataset
     df = pd.merge(messages, categories)
     df_temp_id = df['id']
     return df, df_temp_id
@@ -23,29 +24,26 @@ def load_data(messages_filepath, categories_filepath):
 def clean_data(df, df_temp_id):
     '''
     INPUT 
-        df: Dataframe to be cleaned by the method
-        df_temp_id: the id that is to be used when merging the messages and classifications together based off of the common id
+        df - Dataframe to be cleaned
+        df_temp_id: The id that is to be used when merging the messages and classifications together based off of the common id
     OUTPUT
-        df: Returns a cleaned dataframe Returns the following variables:
+        df: Cleaned dataframe Returns the following variables:
     '''
+    
     categories =  df['categories'].str.split(';', expand=True).add_prefix('categories_')
     messages = df[['message', 'genre', 'id']]
     row = categories.iloc[0]
     category_colnames = list()
-    for x in row:
-        #print(x[0:-2])
-        category_colnames.append(x[0:-2])
-    categories.columns = category_colnames
+    categories.columns = [x[0:-2] for x in row]
+   
     for column in categories:
-        # set each value to be the last character of the string
-        categories[column] =  categories[column].str[-1]
-        # convert column from string to numeric
-        categories[column] = categories[column].astype(int)
+        # set each value to be the last character of the string and convert it to integer
+        categories[column] =  categories[column].str[-1].astype(int)
+    
     # drop the original categories column from `df`
     df.drop(['categories'], axis=1, inplace = True)
     # concatenate the original dataframe with the new `categories` dataframe
     categories['id'] = df['id']
-
     df = pd.merge(messages, categories)
     # check number of duplicates
     print(df.duplicated().sum())
@@ -63,6 +61,7 @@ def save_data(df, database_filename):
     OUTPUT
         Saves the database
     '''
+    #create the connection and read data into sql file
     engine = create_engine('sqlite:///data//DisasterResponse.db')
     df.to_sql('DisasterResponse', engine, index=False, if_exists='replace')
 
