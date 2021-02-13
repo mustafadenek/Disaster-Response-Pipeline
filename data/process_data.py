@@ -44,6 +44,8 @@ def clean_data(df, df_temp_id):
     df.drop(['categories'], axis=1, inplace = True)
     # concatenate the original dataframe with the new `categories` dataframe
     categories['id'] = df['id']
+    #convert 'related' column [0 1 2] to binary --> [0 1]
+    categories['related'].replace(2, 1, inplace = True)
     df = pd.merge(messages, categories)
     # check number of duplicates
     print(df.duplicated().sum())
