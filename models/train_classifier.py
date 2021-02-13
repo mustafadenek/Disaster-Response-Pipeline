@@ -72,6 +72,7 @@ def build_model(X_train,y_train):
     parameters = {  
         'clf__estimator__min_samples_split': [2, 4],        
         'tfidf_vect__max_df': (0.75, 1.0),
+        #'clf__estimator__n_estimators': [10, 25],
 
     }
     #create GridSearchCV and fit it
